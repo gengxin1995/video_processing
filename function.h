@@ -1,0 +1,1 @@
+char * loadSource(char *sourceName, size_t &fileSize);
