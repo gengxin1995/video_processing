@@ -221,8 +221,8 @@ int SIFTGPU::_sift_features( IplImage* img, feature** feat, int intvls,
 /************************ Functions prototyped here **************************/
 int SIFTGPU::getMode(int flag)
 {
-    getGpuUti();
-    getCpuUti();
+    //getGpuUti();
+    //getCpuUti();
 	if (flag) {
 		return 1;
 	} else {
@@ -230,8 +230,39 @@ int SIFTGPU::getMode(int flag)
 	}
 
 }
+
+int SIFTGPU::getCpuUti(){ //xin
+    char result_buf[100] = {0};
+    char command[100] = {0};
+    int rc = 0;
+    FILE *fp;
+    snprintf(command, sizeof(command),"top -bn 1 |grep Cpu | cut -d \",\" -f 1 | cut -d \":\" -f 2");
+    fp = popen(command, "r");
+
+    if(NULL == fp){
+        perror("popen 1 执行失败！");
+        exit(1);
+    }
+    fgets(result_buf, sizeof(result_buf), fp);
+
+    string str = result_buf;
+    //string str = "%Cpu(s):  2.5 us,  0.9 sy,  0.0 ni, 96.0 id,  0.5 wa,  0.0 hi,  0.1 si,  0.0 st";
+    //string sstr = trim(str.substr(str.find(':'), str.find('%')));
+    //cout << str << endl;
+    str.erase(0, 2);
+    str.erase(str.find("us") - 1);
+    cout << "[CPU Uti]: " << str << "%" <<endl;
+    rc = pclose(fp);
+    if(-1 == rc){
+        perror("关闭文件指针失败");
+        exit(1);
+    }
+    return 1;
+}
+
 int SIFTGPU::getGpuUti(){ //xin
-    char result_buf[100], command[100];
+    char result_buf[100] = {0};
+	char command[100] = {0};
     int rc = 0;
     FILE *fp;
     snprintf(command, sizeof(command),"nvidia-smi -q -d UTILIZATION | grep Gpu");
@@ -248,7 +279,7 @@ int SIFTGPU::getGpuUti(){ //xin
     //string sstr = trim(str.substr(str.find(':'), str.find('%')));
     str.erase(0,str.find(":") + 1);
     str.erase(str.find("%"));
-    int d = atoi(str.c_str());
+    float d = atof(str.c_str());
     cout << "[GPU Uti]: " << d << "%" <<endl;
     //printf("[GPU Uti]:%d\n",d);
     //printf("%s",result_buf);
@@ -257,37 +288,7 @@ int SIFTGPU::getGpuUti(){ //xin
         perror("关闭文件指针失败");
         exit(1);
     }
-    return d;
-}
-
-int SIFTGPU::getCpuUti(){ //xin
-    char result_buf[100], command[100];
-    int rc = 0;
-    FILE *fp;
-    snprintf(command, sizeof(command),"top -bn 1 -i -c | grep Cpu");
-    fp = popen(command, "r");
-
-    if(NULL == fp){
-        perror("popen 1 执行失败！");
-        exit(1);
-    }
-    fgets(result_buf, sizeof(result_buf), fp);
-
-    string str = result_buf;
-    //string str = "%Cpu(s):  2.5 us,  0.9 sy,  0.0 ni, 96.0 id,  0.5 wa,  0.0 hi,  0.1 si,  0.0 st";
-    //string sstr = trim(str.substr(str.find(':'), str.find('%')));
-    str.erase(0,str.find("ni,") + 1);
-    str.erase(str.find("id"));
-    int d = atoi(str.c_str());
-    cout << "[CPU Uti]: " << d << "%" <<endl;
-    //printf("[GPU Uti]:%d\n",d);
-    //printf("%s",result_buf);
-    rc = pclose(fp);
-    if(-1 == rc){
-        perror("关闭文件指针失败");
-        exit(1);
-    }
-    return d;
+    return 1;
 }
 
 /*

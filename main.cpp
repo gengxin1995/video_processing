@@ -96,6 +96,11 @@ int main(int argc, const char** argv) {
 
     int frameCount = cap.get(CV_CAP_PROP_FRAME_COUNT);//获取帧数
     double FPS = cap.get(CV_CAP_PROP_FPS);//获取FPS
+    cout << "[FrameCount]: " << frameCount << endl;
+    cout << "[FPS]: " << FPS << endl;
+    siftGPU -> getGpuUti();
+    siftGPU -> getCpuUti();
+
     Mat frame;//存储帧
     Mat temp;//存储前一帧图像
     Mat result;//存储结果图像
