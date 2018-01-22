@@ -153,6 +153,7 @@ class SIFTGPU
 
 		int getMode(int flag);
 		int getGpuUti();
+        int getCpuUti();
 
 		IplImage* createInitImg( IplImage*, int, float, int );//xin
 

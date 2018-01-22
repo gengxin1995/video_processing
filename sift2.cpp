@@ -221,6 +221,8 @@ int SIFTGPU::_sift_features( IplImage* img, feature** feat, int intvls,
 /************************ Functions prototyped here **************************/
 int SIFTGPU::getMode(int flag)
 {
+    getGpuUti();
+    getCpuUti();
 	if (flag) {
 		return 1;
 	} else {
@@ -240,28 +242,54 @@ int SIFTGPU::getGpuUti(){ //xin
         exit(1);
     }
     fgets(result_buf, sizeof(result_buf), fp);
-    /*string str = result_buf;
-    regex r("[0-9]+");
-    smatch m;
-    regex_search(str,m,r);
-    for (auto x : m)
-        std::cout << x << std::endl;*/
+
     string str = result_buf;
     //string str = "        Gpu                         : 25 % ";
     //string sstr = trim(str.substr(str.find(':'), str.find('%')));
     str.erase(0,str.find(":") + 1);
     str.erase(str.find("%"));
     int d = atoi(str.c_str());
-    printf("%d\n",d);
+    cout << "[GPU Uti]: " << d << "%" <<endl;
+    //printf("[GPU Uti]:%d\n",d);
     //printf("%s",result_buf);
     rc = pclose(fp);
     if(-1 == rc){
         perror("关闭文件指针失败");
         exit(1);
     }
-    int result = result_buf[0]-'0';
-    return result;
+    return d;
 }
+
+int SIFTGPU::getCpuUti(){ //xin
+    char result_buf[100], command[100];
+    int rc = 0;
+    FILE *fp;
+    snprintf(command, sizeof(command),"top -bn 1 -i -c | grep Cpu");
+    fp = popen(command, "r");
+
+    if(NULL == fp){
+        perror("popen 1 执行失败！");
+        exit(1);
+    }
+    fgets(result_buf, sizeof(result_buf), fp);
+
+    string str = result_buf;
+    //string str = "%Cpu(s):  2.5 us,  0.9 sy,  0.0 ni, 96.0 id,  0.5 wa,  0.0 hi,  0.1 si,  0.0 st";
+    //string sstr = trim(str.substr(str.find(':'), str.find('%')));
+    str.erase(0,str.find("ni,") + 1);
+    str.erase(str.find("id"));
+    int d = atoi(str.c_str());
+    cout << "[CPU Uti]: " << d << "%" <<endl;
+    //printf("[GPU Uti]:%d\n",d);
+    //printf("%s",result_buf);
+    rc = pclose(fp);
+    if(-1 == rc){
+        perror("关闭文件指针失败");
+        exit(1);
+    }
+    return d;
+}
+
 /*
 Converts an image to 8-bit grayscale and Gaussian-smooths it.  The image is
 optionally doubled in size prior to smoothing.
@@ -302,10 +330,9 @@ optionally doubled in size prior to smoothing.
 		cvReleaseImage( &gray );
 		end = clock();
 		duration = (double)(end - start) / CLOCKS_PER_SEC;
-		cout << endl;
-		cout << "SIFT first stage: " << (SIFTCPU ? "OnGPU" : "OnCPU") << endl;
-		cout << duration << endl;
-		cout << endl;
+		cout << "[SIFT first stage]: " << (SIFTCPU ? "OnCPU" : "OnGPU") << endl;
+		cout << "[Time]: " << duration << endl;
+        cout << endl;
 		return dbl;
 	}
 	else
@@ -326,11 +353,10 @@ optionally doubled in size prior to smoothing.
 		/************************ GPU **************************/
 		end = clock();
 		duration = (double)(end - start) / CLOCKS_PER_SEC;
-		cout << endl;
-		cout << "SIFT first stage: " << endl;
-		cout << duration << endl;
-		cout << endl;
-		return gray;
+		cout << "[SIFT first stage]: " << (SIFTCPU ? "OnCPU" : "OnGPU") << endl;
+		cout << "[Time]: " << duration << endl;
+        cout << endl;
+        return gray;
 	}
 }
 
@@ -442,11 +468,10 @@ Builds Gaussian scale space pyramid from an image
 
 	end = clock();
 	duration = (double)(end - start) / CLOCKS_PER_SEC;
-	cout << endl;
-	cout << "SIFT second stage: " << (SIFTCPU ? "OnGPU" : "OnCPU") << endl;
-	cout << duration << endl;
-	cout << endl;
-	return gauss_pyr;
+	cout << "[SIFT second stage]: " << (SIFTCPU ? "OnCPU" : "OnGPU") << endl;
+	cout << "[Time]: " << duration << endl;
+    cout << endl;
+    return gauss_pyr;
 }
 
 
@@ -531,11 +556,10 @@ intervals of a Gaussian pyramid
 		}
 	end = clock();
 	duration = (double)(end - start) / CLOCKS_PER_SEC;
-	cout << endl;
-	cout << "SIFT third stage: " << (SIFTCPU ? "OnGPU" : "OnCPU") << endl;
-	cout << duration << endl;
-	cout << endl;
-	return dog_pyr;
+	cout << "[SIFT third stage]: " << (SIFTCPU ? "OnCPU" : "OnGPU") << endl;
+	cout << "[Time]: " << duration << endl;
+    cout << endl;
+    return dog_pyr;
 }
 
 
@@ -698,11 +722,10 @@ based on contrast and ratio of principal curvatures.
 
 		finish = clock();
 		duration = (double)(finish - start) / CLOCKS_PER_SEC;
-		cout << endl;
-		cout << "SIFT netto: " << (SIFTCPU ? "OnGPU" : "OnCPU") << endl;
-		cout << duration << endl;
-		cout << endl;
-	return features;
+		cout << "[SIFT fourth stage]: " << (SIFTCPU ? "OnCPU" : "OnGPU") << endl;
+		cout << "[Time]: " << duration << endl;
+        cout << endl;
+    return features;
 }
 
 
